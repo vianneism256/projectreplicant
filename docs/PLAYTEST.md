@@ -36,6 +36,12 @@ Things to know:
 2. Type a handle and press **Create**.
 3. Copy the **ID** shown in the top bar and keep it. It's how you get back into your character from another browser or device (there are no passwords yet).
 
+### Controls
+
+- **Click** a street tile to walk there. **Scroll** to zoom.
+- Walk onto a glowing door and press **E** (or click **Use**): Exchange = market, Factory = refining and building, Transit gate = travel and hauling.
+- **Storage** and **My orders** buttons work from anywhere. The **Dashboard** tab shows everything on one page.
+
 ### What to try
 
 - **Salvage** in each district. Rustline and Ashfields have better materials than Helix Arcology.

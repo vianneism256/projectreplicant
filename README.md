@@ -2,16 +2,16 @@
 
 A 2D isometric cyberpunk sandbox MMO with a fully player-driven economy, player corporations and alliances, territory wars, and living NPC replicant factions. Inspired by EVE Online.
 
-**Current phase: 1 — economy prototype.** No map or graphics yet; the goal is to prove that trading and crafting are fun.
+**Current phase: 2 — walkable isometric city.** Three districts with placeholder art, real-time multiplayer movement, and buildings whose doors open the Phase 1 economy screens (market, factory, transit).
 
 Design document: see the Project Replicant Game & Economy Design Document (export it into `docs/`).
 
 ## Layout
 
 ```
-shared/   Item, recipe, district and economy definitions used by server and client
-server/   Game server (Node + TypeScript). Order-matching engine lives in src/market/
-client/   React + Vite. Trading UI now, Phaser/PixiJS city later
+shared/   Items, recipes, districts, economy rules, district tile maps, real-time protocol
+server/   Game server: REST API, Postgres economy (src/economy, src/market), real-time world over WebSocket (src/world)
+client/   React + Vite. Isometric city in Phaser (src/city), trading screens (Game.tsx)
 db/       Postgres schema (migrations run automatically by Docker on first start)
 ```
 
@@ -73,3 +73,11 @@ npm run dev:client     # http://localhost:5173 (set VITE_API_URL if the server i
 - Fees: 1% broker fee on placement, 2% sales tax on sales. Contraband trades only on black markets, untaxed.
 - Refining loses 20–25% of output (logged as `refine_loss`). NPC facilities charge 2% of input value.
 - Items live in a district. Moving them means hauling (van holds 1,000 volume units); you can't act while in transit.
+
+## City (Phase 2)
+
+- Each district is a 20×20 tile map in `shared/src/maps.ts` (edit the ASCII to change the layout; tests check every door is reachable).
+- The server simulates movement at 10 ticks/s and validates every path (`server/src/world`). Clients only send "walk to tile".
+- Doors: **Exchange** / **Black market** open the market, **Factory** opens industry, **Transit gate** opens travel and hauling.
+- Art is placeholder shapes drawn in code (`client/src/city/CityScene.ts`). Real sprites replace these later.
+- Controls: click to walk, scroll to zoom, **E** to use a door, **Esc** to close. The Dashboard tab keeps the all-in-one Phase 1 screen.

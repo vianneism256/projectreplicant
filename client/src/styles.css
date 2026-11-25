@@ -84,3 +84,26 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .login { max-width: 380px; margin: 12vh auto; padding: 28px; }
 .login h1 { color: var(--accent); letter-spacing: 0.08em; margin-bottom: 6px; }
+
+/* ---- City view ---- */
+.city { position: relative; height: calc(100vh - 64px); overflow: hidden; }
+.cityCanvas { position: absolute; inset: 0; }
+.cityCanvas canvas { display: block; }
+.cityHud { position: absolute; left: 16px; display: flex; gap: 8px; align-items: center; z-index: 3; }
+.cityHud.top { top: 12px; right: 16px; flex-wrap: wrap; }
+.cityHud.top .hint { margin-left: auto; font-size: 12px; }
+.cityHud.bottom {
+  bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 14px; gap: 14px;
+}
+.cityOverlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000a; z-index: 4; }
+.cityOverlay .panel { min-width: 320px; text-align: center; }
+.cityModal { position: absolute; inset: 0; background: #0009; z-index: 5; display: flex; align-items: flex-start; justify-content: center; padding: 48px 16px; overflow: auto; }
+.cityModalBody { position: relative; width: min(900px, 100%); }
+.cityModalBody > .panel { width: 100%; }
+.cityModalBody .close { position: absolute; top: 8px; right: 8px; z-index: 1; }
+.modeToggle { display: flex; gap: 0; }
+.modeToggle button { border-radius: 0; }
+.modeToggle button:first-child { border-radius: 6px 0 0 6px; }
+.modeToggle button:last-child { border-radius: 0 6px 6px 0; }
+.modeToggle button.on { border-color: var(--accent); color: var(--accent); }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { DISTRICTS_BY_ID, ECONOMY, ITEMS, RECIPES, ROUTES, getItem, type RecipeDef } from "@replicant/shared";
 import { api, type EconomySummary, type Market, type PlayerView } from "./api";
 import { cr, districtName, itemName, secs } from "./format";
+import { CityView, type Terminal } from "./city/CityView";
 
 interface Toast {
   id: number;
@@ -15,6 +16,7 @@ export function Game({ view, refresh, onLogout }: { view: PlayerView; refresh: (
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [selectedItem, setSelectedItem] = useState("scrap_metal");
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"city" | "dashboard">("city");
 
   const toast = useCallback((text: string, error = false) => {
     const id = Date.now() + Math.random();
@@ -40,6 +42,22 @@ export function Game({ view, refresh, onLogout }: { view: PlayerView; refresh: (
 
   const p = view.player;
   const inTransit = p.transit_seconds > 0;
+
+  const renderTerminal = (t: Terminal) => {
+    switch (t) {
+      case "exchange":
+      case "blackmarket":
+        return <MarketPanel className="" view={view} itemId={selectedItem} setItemId={setSelectedItem} run={run} busy={busy} />;
+      case "factory":
+        return <IndustryPanel className="" view={view} run={run} busy={busy} />;
+      case "transit":
+        return <TravelPanel className="" view={view} run={run} busy={busy} />;
+      case "storage":
+        return <InventoryPanel className="" view={view} onPick={setSelectedItem} />;
+      case "orders":
+        return <OrdersPanel className="" view={view} run={run} busy={busy} />;
+    }
+  };
 
   return (
     <>
@@ -75,6 +93,14 @@ export function Game({ view, refresh, onLogout }: { view: PlayerView; refresh: (
         >
           {p.salvage_cooldown > 0 ? `Salvage (${p.salvage_cooldown}s)` : "Salvage"}
         </button>
+        <div className="modeToggle">
+          <button className={mode === "city" ? "on" : ""} onClick={() => setMode("city")}>
+            City
+          </button>
+          <button className={mode === "dashboard" ? "on" : ""} onClick={() => setMode("dashboard")}>
+            Dashboard
+          </button>
+        </div>
         <span className="spacer" />
         <span className="muted" style={{ fontSize: 11 }} title="Use this to log in from another browser">
           ID: {p.id}
@@ -82,14 +108,18 @@ export function Game({ view, refresh, onLogout }: { view: PlayerView; refresh: (
         <button onClick={onLogout}>Log out</button>
       </header>
 
-      <main className="grid">
-        <MarketPanel className="span8" view={view} itemId={selectedItem} setItemId={setSelectedItem} run={run} busy={busy} />
-        <InventoryPanel className="span4" view={view} onPick={setSelectedItem} />
-        <OrdersPanel className="span7" view={view} run={run} busy={busy} />
-        <IndustryPanel className="span5" view={view} run={run} busy={busy} />
-        <TravelPanel className="span7" view={view} run={run} busy={busy} />
-        <EconomyPanel className="span5" />
-      </main>
+      {mode === "city" ? (
+        <CityView view={view} renderTerminal={renderTerminal} />
+      ) : (
+        <main className="grid">
+          <MarketPanel className="span8" view={view} itemId={selectedItem} setItemId={setSelectedItem} run={run} busy={busy} />
+          <InventoryPanel className="span4" view={view} onPick={setSelectedItem} />
+          <OrdersPanel className="span7" view={view} run={run} busy={busy} />
+          <IndustryPanel className="span5" view={view} run={run} busy={busy} />
+          <TravelPanel className="span7" view={view} run={run} busy={busy} />
+          <EconomyPanel className="span5" />
+        </main>
+      )}
 
       <div className="toasts">
         {toasts.map((t) => (
@@ -179,7 +209,9 @@ function MarketPanel({
 
       <div className="book">
         <div>
-          <h3 className="buyText" style={{ fontSize: 13, marginBottom: 4 }}>Buy orders</h3>
+          <h3 className="buyText" style={{ fontSize: 13, marginBottom: 4 }}>
+            Buy orders
+          </h3>
           <table>
             <thead>
               <tr>
@@ -190,7 +222,14 @@ function MarketPanel({
             </thead>
             <tbody>
               {market?.bids.map((l) => (
-                <tr key={l.price} className="clickable" onClick={() => { setSide("sell"); setPrice(l.price); }}>
+                <tr
+                  key={l.price}
+                  className="clickable"
+                  onClick={() => {
+                    setSide("sell");
+                    setPrice(l.price);
+                  }}
+                >
                   <td className="num buyText">{l.price.toLocaleString()}</td>
                   <td className="num">{l.qty.toLocaleString()}</td>
                   <td className="num muted">{l.orders}</td>
@@ -198,14 +237,18 @@ function MarketPanel({
               ))}
               {!market?.bids.length && (
                 <tr>
-                  <td colSpan={3} className="muted">No buyers</td>
+                  <td colSpan={3} className="muted">
+                    No buyers
+                  </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
         <div>
-          <h3 className="sellText" style={{ fontSize: 13, marginBottom: 4 }}>Sell orders</h3>
+          <h3 className="sellText" style={{ fontSize: 13, marginBottom: 4 }}>
+            Sell orders
+          </h3>
           <table>
             <thead>
               <tr>
@@ -216,7 +259,14 @@ function MarketPanel({
             </thead>
             <tbody>
               {market?.asks.map((l) => (
-                <tr key={l.price} className="clickable" onClick={() => { setSide("buy"); setPrice(l.price); }}>
+                <tr
+                  key={l.price}
+                  className="clickable"
+                  onClick={() => {
+                    setSide("buy");
+                    setPrice(l.price);
+                  }}
+                >
                   <td className="num sellText">{l.price.toLocaleString()}</td>
                   <td className="num">{l.qty.toLocaleString()}</td>
                   <td className="num muted">{l.orders}</td>
@@ -224,14 +274,18 @@ function MarketPanel({
               ))}
               {!market?.asks.length && (
                 <tr>
-                  <td colSpan={3} className="muted">No sellers</td>
+                  <td colSpan={3} className="muted">
+                    No sellers
+                  </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
-      <p className="muted" style={{ fontSize: 12 }}>Click a price level to fill the order form against it.</p>
+      <p className="muted" style={{ fontSize: 12 }}>
+        Click a price level to fill the order form against it.
+      </p>
 
       <div className="stack" style={{ marginTop: 8 }}>
         <div className="row">
@@ -246,7 +300,15 @@ function MarketPanel({
             Price <input type="number" min={1} value={price} onChange={(e) => setPrice(Math.max(1, Math.floor(+e.target.value)))} />
           </label>
           <label>
-            Days <input type="number" min={1} max={90} value={days} onChange={(e) => setDays(Math.min(90, Math.max(1, Math.floor(+e.target.value))))} style={{ width: 70 }} />
+            Days{" "}
+            <input
+              type="number"
+              min={1}
+              max={90}
+              value={days}
+              onChange={(e) => setDays(Math.min(90, Math.max(1, Math.floor(+e.target.value))))}
+              style={{ width: 70 }}
+            />
           </label>
           <button className={side} disabled={busy || blocked || p.transit_seconds > 0} onClick={place}>
             {side === "buy" ? "Place buy" : "Place sell"}
@@ -408,7 +470,15 @@ function IndustryPanel({ className, view, run, busy }: { className: string; view
               ))}
             </select>
             <label>
-              Runs <input type="number" min={1} max={ECONOMY.maxRunsPerJob} value={runs} onChange={(e) => setRuns(Math.min(ECONOMY.maxRunsPerJob, Math.max(1, Math.floor(+e.target.value))))} style={{ width: 70 }} />
+              Runs{" "}
+              <input
+                type="number"
+                min={1}
+                max={ECONOMY.maxRunsPerJob}
+                value={runs}
+                onChange={(e) => setRuns(Math.min(ECONOMY.maxRunsPerJob, Math.max(1, Math.floor(+e.target.value))))}
+                style={{ width: 70 }}
+              />
             </label>
           </div>
           <table>
@@ -525,7 +595,8 @@ function TravelPanel({ className, view, run, busy }: { className: string; view: 
       ) : (
         <>
           <p className="muted" style={{ marginTop: 0 }}>
-            Load cargo from {districtName(p.location)} (van holds {ECONOMY.courierVanCapacity.toLocaleString()} units), then pick a destination.
+            Load cargo from {districtName(p.location)} (van holds {ECONOMY.courierVanCapacity.toLocaleString()} units), then pick a
+            destination.
           </p>
           {here.length > 0 && (
             <table style={{ marginBottom: 10 }}>
@@ -605,7 +676,11 @@ function TravelPanel({ className, view, run, busy }: { className: string; view: 
 function EconomyPanel({ className }: { className: string }) {
   const [s, setS] = useState<EconomySummary | null>(null);
   useEffect(() => {
-    const load = () => api.economy(24).then(setS).catch(() => {});
+    const load = () =>
+      api
+        .economy(24)
+        .then(setS)
+        .catch(() => {});
     load();
     const t = setInterval(load, 10_000);
     return () => clearInterval(t);

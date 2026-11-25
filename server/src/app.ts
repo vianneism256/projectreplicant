@@ -12,7 +12,10 @@ import { cancelOrder, getMarket, placeOrder } from "./market/marketService";
 /**
  * Phase 1 REST API. No auth yet: the player id acts as the key (fine for 4 testers, not for launch).
  */
-export function buildApp(db: Db, opts: { rng?: Rng; logger?: boolean; clientDir?: string } = {}) {
+export function buildApp(
+  db: Db,
+  opts: { rng?: Rng; logger?: boolean; clientDir?: string; onTravel?: (playerId: string) => void } = {},
+) {
   const app = Fastify({ logger: opts.logger ?? false });
 
   // Serve the built client (client/dist) so the whole game runs on one address.
@@ -118,7 +121,11 @@ export function buildApp(db: Db, opts: { rng?: Rng; logger?: boolean; clientDir?
         },
       },
     },
-    async (req) => haul(db, req.params.id, req.body.to, req.body.cargo ?? []),
+    async (req) => {
+      const r = await haul(db, req.params.id, req.body.to, req.body.cargo ?? []);
+      opts.onTravel?.(req.params.id);
+      return r;
+    },
   );
 
   app.get<{ Params: { district: string; item: string } }>("/markets/:district/:item", async (req) =>

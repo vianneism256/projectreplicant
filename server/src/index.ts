@@ -4,6 +4,7 @@ import { buildApp } from "./app";
 import { createPool, type Db } from "./db/pool";
 import { migrate } from "./db/migrate";
 import { expireOrders } from "./market/marketService";
+import { WorldServer } from "./world/worldServer";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -18,8 +19,10 @@ await waitForDb(db);
 const applied = await migrate(db);
 if (applied.length) console.log(`[replicant] applied migrations: ${applied.join(", ")}`);
 
-const app = buildApp(db, { logger: true, clientDir });
+const worldServer = new WorldServer(db);
+const app = buildApp(db, { logger: true, clientDir, onTravel: (id) => worldServer.kick(id, "travel") });
 await app.listen({ port, host: "0.0.0.0" });
+worldServer.attach(app.server);
 
 // Release escrow of expired orders every minute.
 setInterval(() => {
