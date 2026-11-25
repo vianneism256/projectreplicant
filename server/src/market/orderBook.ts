@@ -128,6 +128,16 @@ export class OrderBook {
     return { order, fills, brokerFee };
   }
 
+  /**
+   * Rests an existing order without matching (used to rebuild a book from the database).
+   * Call in priority order: arrival order decides time priority between equal prices.
+   */
+  load(existing: NewOrder & { remaining: number }): void {
+    if (this.byId.has(existing.id)) throw new Error(`Duplicate order id: ${existing.id}`);
+    assertPositiveInt(existing.remaining, "remaining");
+    this.rest({ ...existing, seq: this.nextSeq++ });
+  }
+
   /** Removes an open order. Returns it (with its unfilled remaining) so the caller can release escrow. */
   cancel(orderId: string): Order | undefined {
     const order = this.byId.get(orderId);

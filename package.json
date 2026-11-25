@@ -2,7 +2,7 @@
   "name": "projectreplicant",
   "private": true,
   "version": "0.1.0",
-  "description": "Sprawlborn (Project Replicant) — cyberpunk sandbox MMO. Phase 1: economy prototype.",
+  "description": "Sprawlborn (Project Replicant) \u2014 cyberpunk sandbox MMO. Phase 1: economy prototype.",
   "workspaces": [
     "shared",
     "server",
@@ -14,7 +14,8 @@
     "test": "npm run test -w server",
     "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client",
     "db:up": "docker compose up -d db",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w server"
   },
   "engines": {
     "node": ">=20"

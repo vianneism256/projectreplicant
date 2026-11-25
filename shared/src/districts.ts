@@ -7,6 +7,7 @@ export const DISTRICTS: readonly DistrictDef[] = [
     name: "Helix Arcology",
     zone: "arcology",
     npcMarket: true,
+    npcFacilities: true,
     blackMarket: false,
     salvage: [
       { itemId: "scrap_metal", weight: 50, min: 2, max: 5 },
@@ -19,6 +20,7 @@ export const DISTRICTS: readonly DistrictDef[] = [
     name: "Rustline",
     zone: "sprawl",
     npcMarket: false,
+    npcFacilities: false,
     blackMarket: true,
     salvage: [
       { itemId: "scrap_metal", weight: 25, min: 3, max: 6 },
@@ -33,6 +35,7 @@ export const DISTRICTS: readonly DistrictDef[] = [
     name: "Ashfields",
     zone: "wildlands",
     npcMarket: false,
+    npcFacilities: false,
     blackMarket: false,
     salvage: [
       { itemId: "copper_wire", weight: 15, min: 2, max: 5 },

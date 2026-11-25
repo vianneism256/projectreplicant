@@ -12,6 +12,16 @@ export const ECONOMY = {
   /** Order lifetime limits, in days. */
   minOrderDays: 1,
   maxOrderDays: 90,
+  /** Where new characters wake up. */
+  startingDistrict: "arc-helix",
+  /** Seconds between salvage actions (limits the item faucet). */
+  salvageCooldownSeconds: 10,
+  /** NPC facility fee per job, as a share of the inputs' base value. Credit sink. */
+  facilityFeeRate: 0.02,
+  /** Max industry runs per job. */
+  maxRunsPerJob: 100,
+  /** Cargo volume a courier van carries per trip (design doc section 9). */
+  courierVanCapacity: 1_000,
 } as const;
 
 export function feeOf(value: number, rate: number): number {

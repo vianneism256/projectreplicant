@@ -64,6 +64,8 @@ export interface DistrictDef {
   salvage: SalvageEntry[];
   /** Has NPC broker market (Arcologies only). */
   npcMarket: boolean;
+  /** Has NPC industry facilities (refinery, fabricator, assembly). Arcologies only in Phase 1. */
+  npcFacilities: boolean;
   /** Has black market (Sprawl only). */
   blackMarket: boolean;
 }
@@ -76,4 +78,4 @@ export interface RouteDef {
 }
 
 /** Every credit or item movement that creates or destroys value (design doc sections 4, 5, 15). */
-export type LedgerKind = "faucet" | "sink" | "transfer";
+export type LedgerKind = "faucet" | "sink" | "transfer" | "transform";

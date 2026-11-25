@@ -1,21 +1,25 @@
-import http from "node:http";
-import { DISTRICTS, ITEMS, RECIPES } from "@replicant/shared";
+import { buildApp } from "./app";
+import { createPool } from "./db/pool";
+import { migrate } from "./db/migrate";
+import { expireOrders } from "./market/marketService";
 
-/**
- * Phase 1 placeholder server: exposes the static catalog so the client can render it.
- * Next steps: Postgres repository, order placement endpoints, then Colyseus rooms per district.
- */
+const url = process.env.DATABASE_URL;
+if (!url) {
+  console.error("DATABASE_URL is not set (copy .env.example to .env)");
+  process.exit(1);
+}
 const port = Number(process.env.PORT ?? 2567);
 
-const server = http.createServer((req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Content-Type", "application/json");
-  if (req.url === "/health") return res.end(JSON.stringify({ ok: true }));
-  if (req.url === "/catalog") return res.end(JSON.stringify({ items: ITEMS, recipes: RECIPES, districts: DISTRICTS }));
-  res.statusCode = 404;
-  res.end(JSON.stringify({ error: "not found" }));
-});
+const db = createPool(url);
+const applied = await migrate(db);
+if (applied.length) console.log(`[replicant] applied migrations: ${applied.join(", ")}`);
 
-server.listen(port, () => {
-  console.log(`[replicant] server listening on :${port}`);
-});
+const app = buildApp(db, { logger: true });
+await app.listen({ port, host: "0.0.0.0" });
+
+// Release escrow of expired orders every minute.
+setInterval(() => {
+  expireOrders(db)
+    .then((n) => n && app.log.info(`expired ${n} orders`))
+    .catch((err) => app.log.error(err));
+}, 60_000);
