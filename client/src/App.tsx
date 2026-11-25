@@ -1,74 +1,50 @@
-import { useState } from "react";
-import { DISTRICTS, ITEMS, RECIPES, getItem } from "@replicant/shared";
+import { useCallback, useEffect, useState } from "react";
+import { api, type PlayerView } from "./api";
+import { Login } from "./Login";
+import { Game } from "./Game";
 
-/**
- * Phase 1 placeholder: browse the starter catalog and recipes.
- * Next: wallet, inventory, order book and crafting panels wired to the server.
- */
+const KEY = "replicant.playerId";
+
 export function App() {
-  const [districtId, setDistrictId] = useState(DISTRICTS[0]!.id);
-  const district = DISTRICTS.find((d) => d.id === districtId)!;
+  const [playerId, setPlayerId] = useState<string | null>(() => localStorage.getItem(KEY));
+  const [view, setView] = useState<PlayerView | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 1000, margin: "0 auto" }}>
-      <h1>Sprawlborn — economy prototype</h1>
+  const login = (id: string) => {
+    localStorage.setItem(KEY, id);
+    setPlayerId(id);
+  };
+  const logout = () => {
+    localStorage.removeItem(KEY);
+    setPlayerId(null);
+    setView(null);
+  };
 
-      <section>
-        <h2>District</h2>
-        <select value={districtId} onChange={(e) => setDistrictId(e.target.value)}>
-          {DISTRICTS.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name} ({d.zone})
-            </option>
-          ))}
-        </select>
-        <p>
-          Salvage here: {district.salvage.map((s) => getItem(s.itemId).name).join(", ")}
-        </p>
-      </section>
+  const refresh = useCallback(async () => {
+    if (!playerId) return;
+    try {
+      setView(await api.player(playerId));
+      setLoadError(null);
+    } catch (err) {
+      setLoadError((err as Error).message);
+    }
+  }, [playerId]);
 
-      <section>
-        <h2>Items ({ITEMS.length})</h2>
-        <table cellPadding={6} style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr style={{ textAlign: "left" }}>
-              <th>Item</th>
-              <th>Category</th>
-              <th>Tier</th>
-              <th>Volume</th>
-              <th>Base value (cr)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ITEMS.map((i) => (
-              <tr key={i.id} style={{ borderTop: "1px solid #ddd" }}>
-                <td>
-                  {i.name}
-                  {i.contraband ? " (contraband)" : ""}
-                </td>
-                <td>{i.category}</td>
-                <td>{i.tier}</td>
-                <td>{i.volume}</td>
-                <td>{i.baseValue.toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+  useEffect(() => {
+    if (!playerId) return;
+    refresh();
+    const t = setInterval(refresh, 2000);
+    return () => clearInterval(t);
+  }, [playerId, refresh]);
 
-      <section>
-        <h2>Recipes ({RECIPES.length})</h2>
-        <ul>
-          {RECIPES.map((r) => (
-            <li key={r.id}>
-              <strong>{r.facility}</strong>:{" "}
-              {r.inputs.map((x) => `${x.qty}× ${getItem(x.itemId).name}`).join(" + ")} →{" "}
-              {r.outputs.map((x) => `${x.qty}× ${getItem(x.itemId).name}`).join(" + ")}
-              {r.baseYield ? ` (${Math.round(r.baseYield * 100)}% yield)` : ""}
-            </li>
-          ))}
-        </ul>
-      </section>
-    </main>
-  );
+  if (!playerId) return <Login onLogin={login} />;
+  if (!view) {
+    return (
+      <div className="panel login">
+        <p>{loadError ? `Couldn't load your character: ${loadError}` : "Connecting…"}</p>
+        {loadError && <button onClick={logout}>Back to login</button>}
+      </div>
+    );
+  }
+  return <Game view={view} refresh={refresh} onLogout={logout} />;
 }

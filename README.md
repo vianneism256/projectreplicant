@@ -26,7 +26,7 @@ npm run db:up          # starts Postgres (creates `replicant` and `replicant_tes
 npm run db:migrate     # applies db/migrations (the server also does this on start)
 npm test               # unit tests; add TEST_DATABASE_URL from .env to run the Postgres tests too
 npm run dev:server     # http://localhost:2567
-npm run dev:client     # http://localhost:5173
+npm run dev:client     # http://localhost:5173 (set VITE_API_URL if the server isn't on localhost:2567)
 ```
 
 ## Phase 1 checklist
@@ -38,7 +38,7 @@ npm run dev:client     # http://localhost:5173
 - [x] Postgres layer: escrow on order placement, settlement of fills, cancel, expiry, ledger writes
 - [x] Salvage, refine, craft and haul actions
 - [x] REST API (see below) and integration tests on real Postgres
-- [ ] Trading screen: wallet, inventory, order book, crafting, faucet/sink dashboard
+- [x] Trading screen: wallet, storage, order book, my orders, industry, travel/hauling, economy dashboard
 - [ ] Playtest with 4 testers
 
 ## API (Phase 1, no auth yet — the player id is the key)
