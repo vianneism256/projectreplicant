@@ -15,7 +15,16 @@ client/   React + Vite. Trading UI now, Phaser/PixiJS city later
 db/       Postgres schema (migrations run automatically by Docker on first start)
 ```
 
-## Getting started
+## Host a playtest from your computer
+
+```bash
+npm run playtest              # testers on your Wi-Fi
+npm run playtest -- --tunnel  # testers anywhere (needs cloudflared)
+```
+
+Full guide for you and your testers: [docs/PLAYTEST.md](docs/PLAYTEST.md).
+
+## Getting started (development)
 
 Requirements: Node 20+, Docker.
 

@@ -1,4 +1,6 @@
-const BASE: string = import.meta.env.VITE_API_URL ?? "http://localhost:2567";
+// Dev (vite on :5173) talks to the server on :2567. A production build is served by the
+// game server itself, so it calls the same address it was loaded from (works through tunnels).
+const BASE: string = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "http://localhost:2567" : "");
 
 export class ApiError extends Error {}
 

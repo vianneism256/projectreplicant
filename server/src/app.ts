@@ -1,4 +1,7 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import Fastify from "fastify";
+import fastifyStatic from "@fastify/static";
 import { DISTRICTS, ITEMS, RECIPES, ROUTES } from "@replicant/shared";
 import { GameError, tx, type Db } from "./db/pool";
 import { createPlayer } from "./economy/players";
@@ -9,8 +12,13 @@ import { cancelOrder, getMarket, placeOrder } from "./market/marketService";
 /**
  * Phase 1 REST API. No auth yet: the player id acts as the key (fine for 4 testers, not for launch).
  */
-export function buildApp(db: Db, opts: { rng?: Rng; logger?: boolean } = {}) {
+export function buildApp(db: Db, opts: { rng?: Rng; logger?: boolean; clientDir?: string } = {}) {
   const app = Fastify({ logger: opts.logger ?? false });
+
+  // Serve the built client (client/dist) so the whole game runs on one address.
+  if (opts.clientDir && existsSync(path.join(opts.clientDir, "index.html"))) {
+    app.register(fastifyStatic, { root: opts.clientDir });
+  }
 
   app.addHook("onSend", async (_req, reply) => {
     reply.header("Access-Control-Allow-Origin", "*");
